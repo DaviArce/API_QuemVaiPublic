@@ -7,7 +7,7 @@ const axios = require("axios");
 module.exports = {
   async geocode(search){
     try{
-      const response = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${search}.json?access_token=pk.eyJ1IjoiZGF2aWFyY2UiLCJhIjoiY2tiYTJpM2hxMDFzbTJua296ZXRkY2RldyJ9.mADUnnPkI-I06-xav8cabQ`);
+      const response = await axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${search}.json?access_token=`);
       return response.data;
     }
     catch(err){
