@@ -172,7 +172,7 @@ $ npx sequelize db:seed:all
 
       # Informe qual será o Email e senha que responderá os email para os usuários
       "user": "contatochumecompany@gmail.com",
-      "password": "contatochume"
+      "password": ""
     }
   }
 }
