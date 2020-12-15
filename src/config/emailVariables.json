@@ -1,0 +1,14 @@
+{
+  "name": "development environment",
+  "mail": {
+    "mailSender": {
+      "host": "Gmail",
+      "user": "",
+      "password": ""
+    },
+    "mailGetter": {
+      "user": "",
+      "password": ""
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "dialect": "",
+  "host": "",
+  "username": "",
+  "password": "",
+  "database": "",
+  "define": {
+    "timestamps": false,
+    "underscored": true
+  }
+}
