@@ -1,4 +1,5 @@
 {
-  "jwtPrivateKey": "",
-  "saltValue": "/valor inteiro"
+  "jwtPrivateKey": "Voltando o monstro",
+  "saltValue": 10,
+  "expireTime":18000
 }

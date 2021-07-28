@@ -1,5 +1,6 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const moment = require("moment");
 
 const config = require("../config/custom-environment-variables.json");
 const UsersService = require("../services/UsersServices.js");
@@ -18,18 +19,21 @@ class Crypt {
   static async generateToken(email) {
     try {
       const result = await UsersService.getUsersByEmail(email);
-
-      let id = result.dataValues.id;
-      let isAdmin = result.dataValues.isAdmin;
-      let name = result.dataValues.name;
+      const date = moment([]);
+      const finish = moment().add(config.expireTime,"seconds");
 
       let token = jwt.sign(
-        { id: id, isAdmin: isAdmin, name: name },
+        {result},
         config.jwtPrivateKey,
-        { expiresIn: 18000 }
+        { expiresIn: config.expireTime }
       );
-
-      return token;
+      let res = {
+        "token":token,
+        "expiresIn":`${config.expireTime}s`,
+        "loginHour": date,
+        "expiresDate":finish
+      }
+      return res;
     } catch (err) {
       return err;
     }

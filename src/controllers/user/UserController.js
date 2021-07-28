@@ -3,72 +3,75 @@ const UsersService = require("../../services/UsersServices.js");
 const Upload = require("../../utils/UploadImage.js");
 
 class UserControllers {
+  //Function to create users in the application
   static async signup(req, res, next) {
     const password = req.header("x-password");
     const { cellPhoneNumber, email, DDD, name, username, photos } = req.body;
-
-    try {
-      const find = await UsersService.getUsersByEmail(email);
-
-      if (find) {
-        return res.status(406).send({ "User already registered": true });
-      }
-      const hash = await Crypt.generateHash(password);
-      const upload = await Upload.uploadPhoto(photos);
-      const create = await UsersService.createUser(
-        cellPhoneNumber,
-        DDD,
-        name,
-        username,
-        hash,
-        email,
-        upload
-      );
-
-      const token = await Crypt.generateToken(email);
-
+    if (
+      cellPhoneNumber == "" ||
+      email == "" ||
+      DDD == "" ||
+      name == "" ||
+      username == ""
+    ) {
       return res
-        .header({ "x-auth-token": token })
-        .send({ "User registered": true });
-    } catch (err) {
-      next(err);
-    }
-  }
+        .send({
+          Error: "Check if the fields is not empty",
+        })
+        .status(406);
+      /* Increase this validation */
+    } else {
+      try {
+        const find = await UsersService.getUsersByEmail(email);
+        console.log(find);
 
-  static async index(req, res, next) {
-    const user_id = req.user.id;
-    try {
-      const result = await UsersService.getUsersByPk(user_id);
-      return res.send({ info: result });
-    } catch (err) {
-      next(err);
+        if (find[0] == "") {
+          return res.status(406).send({ "User already registered": true });
+        }
+        const hash = await Crypt.generateHash(password);
+        const upload = await Upload.uploadPhoto(photos);
+        await UsersService.createUser(
+          cellPhoneNumber,
+          DDD,
+          name,
+          username,
+          hash,
+          email,
+          upload
+        );
+
+        const token = await Crypt.generateToken(email);
+        return res
+          .header({ "x-auth-token": token })
+          .send({ "User registered": true });
+      } catch (err) {
+        next(err);
+      }
     }
   }
+  // Function to deletes users from the application
   static async delete(req, res, next) {
-    const user_id = req.user.id;
+    const user_id = req.user.result;
+    // fix the variable who is receiving the data for the OBJECT
+    console.log(user_id[0]);
     try {
       const result = await UsersService.getUsersByPk(user_id);
 
       if (!result) {
         return res.status(204).send({ "User found": null });
       }
-      const erase = await result.update({ status: "deleted" });
+      await UsersService.deleteUser(user_id,user_email);
 
       return res.send({ "User deleted": true });
     } catch (err) {
       next(err);
     }
   }
+  // Function to update users things
   static async update(req, res, next) {
-    const user_id = req.user.id;
-    const {
-      cellPhoneNumber,
-      email,
-      user_email_confirm,
-      DDD,
-      name,
-      username,
-    } = req.body;
+    const user_id = req.user.result.id;
+    const { cellPhoneNumber, email, user_email_confirm, DDD, name, username } =
+      req.body;
     try {
       const result = await UsersService.getUsersByPk(user_id);
 
@@ -103,8 +106,9 @@ class UserControllers {
       next(err);
     }
   }
+  // Function to update user photo
   static async updatePhoto(req, res, next) {
-    const user_id = req.user.id;
+    const user_id = req.user.result.id;
     const { photos } = req.body;
     if (!photos) {
       return res.status(204).send({ "Not photo sent": true });
@@ -123,8 +127,9 @@ class UserControllers {
       next(err);
     }
   }
+  // Function to delete the user photo
   static async deletePhoto(req, res, next) {
-    const user_id = req.user.id;
+    const user_id = req.user.result.id;
     const value = undefined;
     try {
       const find = await UsersService.getUsersByPk(user_id);
@@ -138,8 +143,9 @@ class UserControllers {
       next(err);
     }
   }
+  // Function to update the user password
   static async updatePassword(req, res, next) {
-    const user_id = req.user.id;
+    const user_id = req.user.result.id;
     const password = req.header("x-new-password");
     if (!password) {
       return res.status(204).send({ "Password not sent": true });

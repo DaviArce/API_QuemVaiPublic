@@ -1,9 +1,9 @@
 {
-  "dialect": "",
-  "host": "",
-  "username": "",
-  "password": "",
-  "database": "",
+  "dialect": "mysql",
+  "host": "localhost",
+  "username": "root",
+  "password": "123456",
+  "database": "quemvai",
   "define": {
     "timestamps": false,
     "underscored": true

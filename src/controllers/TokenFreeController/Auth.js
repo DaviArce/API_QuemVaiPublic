@@ -18,7 +18,7 @@ class Auth{
             if(!validPassword){
                 return res.status(400).send('Invalid email or password');
             }
-            if(result.dataValues.status === "deleted" || result.dataValues.status === "banned"){
+            if(result.status === "deleted" || result.status === "banned"){
                 return res.status(401).send("Invalid account");
             }
             const token = await Crypt.generateToken(email);
