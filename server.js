@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const path = require("path");
-const socket = require("./src/startup/socket");
+// const socket = require("./src/startup/socket");
 
 const fs = require("fs");
 const https = require("https");
@@ -26,7 +26,7 @@ require("./src/data/database/index.js")();
 
 app.use(express.json());
 app.use(cors());
-socket.Socket(server);
+// socket.Socket(server);
 app.use(helmet());
 
 app.use(express.static(path.join(__dirname, "/src/view")));

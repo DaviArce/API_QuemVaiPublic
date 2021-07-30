@@ -36,27 +36,56 @@ class UserServices {
   }
   static async getUsersByEmail(email) {
     try {
-      const [results,metadata] = await conn.query(`SELECT id,username,name,email,cellPhoneNumber,DDD,status,isAdmin,photos FROM quemvai.USERS WHERE email = "${email}" and status = "cadastrado"; `)
-      // const find = await Users.findOne({
-      //   where: { email: email, status: "cadastrado" },
-      // });
+      const [results, metadata] = await conn.query(
+        `SELECT id,username,name,email,cellPhoneNumber,DDD,status,isAdmin,photos FROM quemvai.USERS WHERE email = "${email}" and status = "cadastrado"; `
+      );
       return results;
-      
     } catch (err) {
       return err;
     }
   }
-  static async deleteUser(id,email){
-    console.log(id,email);
-    try{
+  static async getUsersByIndex(index) {
+    try {
+      const [results, metadata] = await conn.query(
+        `SELECT id,username,name,email,cellPhoneNumber,DDD,status,isAdmin,photos FROM quemvai.USERS WHERE id = "${index}" ; `
+      );
+      return results;
+    } catch (err) {
+      return err;
+    }
+  }
+  static async deleteUser(id, email) {
+    try {
       const [results, metadata] = await conn.query(
         `UPDATE quemvai.users SET status = "deleted" WHERE ID = ${id} AND email = "${email}" `
       );
       return results;
-    }
-    catch(err){
+    } catch (err) {
       return err;
     }
+  }
+  static async updateUser(cell, DDD, name, nick, email, ResultArray) {
+    if (cell == "") {
+      cell = ResultArray.dataValues.cellPhoneNumber;
+    } else {
+    }
+    if (DDD == "") {
+      DDD = ResultArray.dataValues.DDD;
+    } else {
+    }
+    if (name == "") {
+      name = ResultArray.dataValues.name;
+    } else {
+    }
+    if (nick == "") {
+      nick = ResultArray.dataValues.username;
+    } else {
+    }
+
+    const [results, metadata] = await conn.query(
+      `UPDATE quemvai.users SET cellPhoneNumber = '${cell}', DDD = '${DDD}', name = '${name}', username = '${nick}'  WHERE  email = "${email}" `
+    );
+    return results;
   }
   static async createUser(cell, DDD, name, nick, pass, email, photo) {
     try {

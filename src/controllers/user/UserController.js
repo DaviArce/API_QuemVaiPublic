@@ -19,13 +19,10 @@ class UserControllers {
           Error: "Check if the fields is not empty",
         })
         .status(406);
-      /* Increase this validation */
     } else {
       try {
         const find = await UsersService.getUsersByEmail(email);
-        console.log(find);
-
-        if (find[0] == "") {
+        if (find[0]) {
           return res.status(406).send({ "User already registered": true });
         }
         const hash = await Crypt.generateHash(password);
@@ -39,7 +36,6 @@ class UserControllers {
           email,
           upload
         );
-
         const token = await Crypt.generateToken(email);
         return res
           .header({ "x-auth-token": token })
@@ -51,59 +47,111 @@ class UserControllers {
   }
   // Function to deletes users from the application
   static async delete(req, res, next) {
-    const user_id = req.user.result;
-    // fix the variable who is receiving the data for the OBJECT
-    console.log(user_id[0]);
-    try {
-      const result = await UsersService.getUsersByPk(user_id);
-
-      if (!result) {
-        return res.status(204).send({ "User found": null });
+    const { id } = req.user;
+    const { email, confirmPass, password } = req.body;
+    if (password != "" && email != "" && confirmPass != "") {
+      try {
+        const result = await UsersService.getUsersByPk(id);
+        if (!result) {
+          return res.status(204).send({ "User found": null });
+        }
+        const validPassword = await Crypt.compareHash(
+          password,
+          result.password
+        );
+        if (
+          email == result.dataValues.email &&
+          password == confirmPass &&
+          validPassword
+        ) {
+          const result = await UsersService.deleteUser(id, email);
+          if(result.changedRows > 0){
+          return res.send({ "User deleted": true });
+          }
+          else{
+            return res.send({
+              Updated: false,
+              Result: receive.info,
+              Info: "The fields was not updated because the new value is equal than old value",
+            });
+          }
+        } else {
+          return res
+            .status(406)
+            .send({ Error: "Please send the correct email and password" });
+        }
+      } catch (err) {
+        next(err);
       }
-      await UsersService.deleteUser(user_id,user_email);
-
-      return res.send({ "User deleted": true });
-    } catch (err) {
-      next(err);
+    } else {
+      return res.status(400).send({ Error: "Email and Password is required" });
     }
   }
   // Function to update users things
   static async update(req, res, next) {
-    const user_id = req.user.result.id;
-    const { cellPhoneNumber, email, user_email_confirm, DDD, name, username } =
-      req.body;
-    try {
-      const result = await UsersService.getUsersByPk(user_id);
-
-      if (!result) {
-        return res.status(204).send({ "User found": null });
+    const { id } = req.user;
+    const {
+      cellPhoneNumber,
+      email,
+      password,
+      confirmPass,
+      DDD,
+      name,
+      username,
+    } = req.body;
+    if (password != "" && email != "") {
+      try {
+        const result = await UsersService.getUsersByPk(id);
+        const validPassword = await Crypt.compareHash(
+          password,
+          result.password
+        );
+        if (
+          email == result.dataValues.email &&
+          password == confirmPass &&
+          validPassword
+        ) {
+          if (!result) {
+            return res.status(204).send({ "User found": null });
+          } else {
+            const validPassword = await Crypt.compareHash(
+              password,
+              result.password
+            );
+            if (!validPassword || email != result.email) {
+              return res
+                .status(406)
+                .send({ Error: "Please send the correct email and password" });
+            } else {
+              const receive = await UsersService.updateUser(
+                cellPhoneNumber,
+                DDD,
+                name,
+                username,
+                email,
+                result
+              );
+              if (receive.changedRows > 0) {
+                return res.send({ Updated: true });
+              } else {
+                return res.send({
+                  Updated: false,
+                  Result: receive.info,
+                  Info: "The fields was not updated because the new value is equal than old value",
+                });
+              }
+            }
+          }
+        } else {
+          return res
+            .status(406)
+            .send({ Error: "Please send the correct email and password" });
+        }
+      } catch (err) {
+        next(err);
       }
-      //vao me passar o email dele que esta agora e o se tiver alteração
-      // caso o os dois email diferem diferente é pq ele quer alterar o email
-      const findEmail = await UsersService.getUsersByEmail(email);
-      if (findEmail && email != user_email_confirm) {
-        return res.status(406).send({ "Email already registered": true });
-      }
-      if (findEmail && email == user_email_confirm) {
-        const update = await result.update({
-          cellPhoneNumber: cellPhoneNumber,
-          DDD: DDD,
-          name: name,
-          username: username,
-        });
-        return res.send({ Updated: true });
-      }
-      const update = await result.update({
-        cellPhoneNumber: cellPhoneNumber,
-        email: email,
-        DDD: DDD,
-        name: name,
-        username: username,
-      });
-      return res.send({ Updated: true });
-    } catch (err) {
-      //mandar o tonho fazer a pesquisa primeiro e se n tiver essa alteração envia os dados antigos de novo
-      next(err);
+    } else {
+      return res.status(400).send({ Error: "Email and Password is required" });
     }
   }
   // Function to update user photo
@@ -128,6 +176,7 @@ class UserControllers {
     }
   }
   // Function to delete the user photo
+  // Photo things is going to be refactor after the DEV find the a new way to upload photos
   static async deletePhoto(req, res, next) {
     const user_id = req.user.result.id;
     const value = undefined;
