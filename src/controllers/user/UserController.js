@@ -229,7 +229,6 @@ class UserControllers {
               updatedHash
             );
             if (result.changedRows > 0) {
-              const token = await Crypt.generateToken(email);
               return res.send({ Updated: true, "Warn": "Please make the sign in again" });
             } else {
               return res.send({
@@ -275,9 +274,8 @@ class UserControllers {
             validPassword &&
             email == result.dataValues.email
           ) {
-            const result = await UsersService.updateEmail(id, email);
+            const result = await UsersService.updateEmail(id, email,newEmail);
             if (result.changedRows > 0) {
-              const token = await Crypt.generateToken(email);
               return res.send({ Updated: true, "Warn": "Please make the sign in again" });
             } else {
               return res.send({
