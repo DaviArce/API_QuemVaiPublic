@@ -13,11 +13,23 @@ async function auth(req, res, next) {
       req.user = decoded.result[0];
       const result = await UserServices.getUsersByIndex(decoded.result[0].id);
       if(result[0].status == "deleted" || result[0].status == "banned"){
-        return res.status(401).send("Invalid account");
+        return res.status(401).send({Error:"Invalid account"});
       }
       else{
-        next();
+        
       }
+      if(result[0].email != decoded.result[0].email){
+        return res.status(401).send({Error:"Your credentials is wrong, please make your sign in again"});
+      }else{
+
+      }
+      if(result[0].password != decoded.result[0].password){
+        return res.status(401).send({Error:"Your credentials is wrong, please make your sign in again"});
+      }
+      else{
+        
+      }
+      next();
       
     } catch (err) {
       res

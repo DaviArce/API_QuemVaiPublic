@@ -8,5 +8,6 @@ routes.put("/update/me", ControllerUserManagement.update);
 routes.put("/update/me/photo", ControllerUserManagement.updatePhoto);
 routes.put("/unlockpass/me", ControllerUserManagement.updatePassword);
 routes.put("/delete/me/photo", ControllerUserManagement.deletePhoto);
+routes.put("/emailUpdate/me",ControllerUserManagement.updateEmail);
 
 module.exports = routes;

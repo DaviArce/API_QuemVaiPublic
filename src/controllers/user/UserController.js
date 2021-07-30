@@ -65,10 +65,9 @@ class UserControllers {
           validPassword
         ) {
           const result = await UsersService.deleteUser(id, email);
-          if(result.changedRows > 0){
-          return res.send({ "User deleted": true });
-          }
-          else{
+          if (result.changedRows > 0) {
+            return res.send({ "User deleted": true });
+          } else {
             return res.send({
               Updated: false,
               Result: receive.info,
@@ -155,6 +154,7 @@ class UserControllers {
     }
   }
   // Function to update user photo
+  // Photo things is going to be refactor after the DEV find the a new way to upload photos
   static async updatePhoto(req, res, next) {
     const user_id = req.user.result.id;
     const { photos } = req.body;
@@ -194,29 +194,107 @@ class UserControllers {
   }
   // Function to update the user password
   static async updatePassword(req, res, next) {
-    const user_id = req.user.result.id;
-    const password = req.header("x-new-password");
-    if (!password) {
-      return res.status(204).send({ "Password not sent": true });
-    }
-    try {
-      const result = await UsersService.getUsersByPk(user_id);
+    const { id } = req.user;
+    const newPassword = req.header("x-new-password");
+    const currentPassword = req.header("x-current-password");
+    const confirmPassword = req.header("x-confirm-password");
 
-      if (!result) {
-        return res.status(204).send({ "User found": null });
+    const { email } = req.body;
+    if (
+      currentPassword == "" ||
+      confirmPassword == "" ||
+      email == "" ||
+      newPassword == ""
+    ) {
+      return res.status(400).send({ Error: "Email and Password are required" });
+    } else {
+      try {
+        const result = await UsersService.getUsersByPk(id);
+        if (!result) {
+          return res.status(204).send({ "User found": null });
+        } else {
+          const validPassword = await Crypt.compareHash(
+            currentPassword,
+            result.password
+          );
+          if (
+            currentPassword == confirmPassword &&
+            validPassword &&
+            email == result.dataValues.email
+          ) {
+            const updatedHash = await Crypt.generateHash(newPassword);
+            const result = await UsersService.updatePassword(
+              id,
+              email,
+              updatedHash
+            );
+            if (result.changedRows > 0) {
+              const token = await Crypt.generateToken(email);
+              return res.send({ Updated: true, "Warn": "Please make the sign in again" });
+            } else {
+              return res.send({
+                Updated: false,
+                Result: result.info,
+                Info: "The password was not updated because the new value is equal than old value",
+              });
+            }
+          } else {
+            return res
+              .status(406)
+              .send({ Error: "Please send the correct email and password" });
+          }
+        }
+      } catch (err) {
+        next(err);
       }
-
-      const email = result.dataValues.email;
-
-      const newPassword = await Crypt.generateHash(password);
-
-      const update = await result.update({ password: newPassword });
-
-      const token = await Crypt.generateToken(email);
-
-      return res.send({ Updated: true, " New token": token });
-    } catch (err) {
-      next(err);
+    }
+  }
+  // Function to update the user email
+  static async updateEmail(req, res, next) {
+    const { id } = req.user;
+    const { email, newEmail, password, confirmPassword } = req.body;
+    if (
+      email == "" ||
+      newEmail == "" ||
+      password == "" ||
+      confirmPassword == ""
+    ) {
+      return res.status(400).send({ Error: "Check if you sent the values" });
+    } else {
+      try {
+        const result = await UsersService.getUsersByPk(id);
+        if (!result) {
+          return res.status(204).send({ "User found": null });
+        } else {
+          const validPassword = await Crypt.compareHash(
+            password,
+            result.password
+          );
+          if (
+            password == confirmPassword &&
+            validPassword &&
+            email == result.dataValues.email
+          ) {
+            const result = await UsersService.updateEmail(id, email);
+            if (result.changedRows > 0) {
+              const token = await Crypt.generateToken(email);
+              return res.send({ Updated: true, "Warn": "Please make the sign in again" });
+            } else {
+              return res.send({
+                Updated: false,
+                Result: result.info,
+                Info: "The password was not updated because the new value is equal than old value",
+              });
+            }
+          } else {
+            return res
+              .status(406)
+              .send({ Error: "Please send the correct email and password" });
+          }
+        }
+      } catch (err) {
+        next();
+      }
     }
   }
 }

@@ -9,16 +9,16 @@ class Auth{
         try{
             
             const result = await UserServices.getUsersByEmail(email);
-            
-            if(!result){
+            if(!result[0]){
                 return res.status(400).send('Invalid email or password');
             }
-            const validPassword = await Crypt.compareHash(password,result.password);
+            const validPassword = await Crypt.compareHash(password,result[0].password);
             
             if(!validPassword){
                 return res.status(400).send('Invalid email or password');
             }
-            if(result.status === "deleted" || result.status === "banned"){
+
+            if(result[0].status === "deleted" || result[0].status === "banned"){
                 return res.status(401).send("Invalid account");
             }
             const token = await Crypt.generateToken(email);

@@ -37,7 +37,7 @@ class UserServices {
   static async getUsersByEmail(email) {
     try {
       const [results, metadata] = await conn.query(
-        `SELECT id,username,name,email,cellPhoneNumber,DDD,status,isAdmin,photos FROM quemvai.USERS WHERE email = "${email}" and status = "cadastrado"; `
+        `SELECT id,username,name,email,cellPhoneNumber,DDD,status,isAdmin,photos,password FROM quemvai.USERS WHERE email = "${email}" and status = "cadastrado"; `
       );
       return results;
     } catch (err) {
@@ -47,7 +47,7 @@ class UserServices {
   static async getUsersByIndex(index) {
     try {
       const [results, metadata] = await conn.query(
-        `SELECT id,username,name,email,cellPhoneNumber,DDD,status,isAdmin,photos FROM quemvai.USERS WHERE id = "${index}" ; `
+        `SELECT id,username,name,email,cellPhoneNumber,DDD,status,isAdmin,photos,password FROM quemvai.USERS WHERE id = "${index}" ; `
       );
       return results;
     } catch (err) {
@@ -84,6 +84,18 @@ class UserServices {
 
     const [results, metadata] = await conn.query(
       `UPDATE quemvai.users SET cellPhoneNumber = '${cell}', DDD = '${DDD}', name = '${name}', username = '${nick}'  WHERE  email = "${email}" `
+    );
+    return results;
+  }
+  static async updatePassword(id,email,newPassword){
+    const [results, metadata] = await conn.query(
+      `UPDATE quemvai.users SET password = '${newPassword}' WHERE  email = "${email}" AND id = '${id}';`
+    );
+    return results;
+  }
+  static async updateEmail(id,email,newEmail){
+    const [results, metadata] = await conn.query(
+      `UPDATE quemvai.users SET email = '${newEmail}' WHERE  email = "${email}" AND id = '${id}';`
     );
     return results;
   }
